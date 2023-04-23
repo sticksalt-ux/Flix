@@ -28,11 +28,54 @@ async function search() {
     global.search.term = urlParams.get('search-term')
 
     if(global.search.term !== '') {
-        const results = await searchAPI()
-        console.log(results)
+        const { results, total_pages, page } = await searchAPI()
+        
+        if (results.length === 0) {
+            showAlert('No results found')
+        }
+
+        displaySearch(results)
+
+        document.querySelector('#search-term').value = ''
+
     } else {
         showAlert('Please enter a search term')
     }
+    
+}
+
+function displaySearch(results) {
+    const container = document.querySelector('#search-results')
+    results.forEach(results => {
+        const card = document.createElement('div')
+        card.classList.add('card')
+        card.innerHTML = `
+        <a href="${global.search.type}-details.html?id=${results.id}">
+          ${
+            results.poster_path
+            ? `<img
+            src="https://image.tmdb.org/t/p/w500/${results.poster_path}"
+            class="card-img-top"
+            alt="${global.search.type === 'movie' ? results.title :
+            results.name}"
+          />` : `<img
+          src=""
+          class="card-img-top"
+          alt="${global.search.type === 'movie' ? results.title :
+          results.name}"
+        />`
+          }
+        </a>
+        <div class="card-body">
+          <h5 class="card-title">${global.search.type === 'movie' ? results.title :
+          results.name}</h5>
+          <p class="card-text">
+            <small class="text-muted">Release: ${global.search.type === 'movie' ? results.release_date : results.first_air_date}</small>
+          </p>
+        </div>
+        `
+        container.appendChild(card)
+    })
 }
 
 async function searchAPI() {
@@ -257,7 +300,6 @@ function backdrop(type, input) {
 async function displayPopularTvShows() {
     const container = document.querySelector('#popular-shows')
     const { results } = await fetchData('tv/popular')
-    console.log(results)
     results.forEach(show => {
         const card = document.createElement('div')
         card.classList.add('card')

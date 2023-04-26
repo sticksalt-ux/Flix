@@ -4,7 +4,8 @@ const global = {
         term: '',
         type: '',
         page: 1,
-        totalPages: 1
+        totalPages: 1,
+        totalResults: 0
     }
 }
 
@@ -28,7 +29,11 @@ async function search() {
     global.search.term = urlParams.get('search-term')
 
     if(global.search.term !== '') {
-        const { results, total_pages, page } = await searchAPI()
+        const { results, total_pages, page, total_results } = await searchAPI()
+
+        global.search.totalPages = total_pages
+        global.search.page = page
+        global.search.totalResults = total_results
         
         if (results.length === 0) {
             showAlert('No results found')
@@ -46,6 +51,7 @@ async function search() {
 
 function displaySearch(results) {
     const container = document.querySelector('#search-results')
+    container.innerHTML = ''
     results.forEach(results => {
         const card = document.createElement('div')
         card.classList.add('card')
@@ -74,17 +80,64 @@ function displaySearch(results) {
           </p>
         </div>
         `
+
         container.appendChild(card)
     })
+    document.querySelector('#search-results-heading').innerHTML = ''
+    document.querySelector('#search-results-heading').innerHTML = `
+    <h2>Showing ${results.length} of ${global.search.totalResults} Results for ${global.search.term}</h2>`
+        
+    window.scrollTo(0, 0);
+    displayPagination()
+}
+
+function displayPagination() {
+    document.querySelector('#pagination').innerHTML = ''
+    const container = document.createElement('div')
+    container.classList.add('.pagination')
+    container.innerHTML =
+     `
+    <button class="btn btn-primary" id="prev">Prev</button>
+    <button class="btn btn-primary" id="next">Next</button>
+    <div class="page-counter">Page ${global.search.page} of ${global.search.totalPages}</div>
+    `
+    
+    document.querySelector('#pagination').appendChild(container)
+    document.querySelector('#next').disabled = false
+    document.querySelector('#prev').disabled = true
+
+    if (global.search.page > 1 & global.search.totalPages !== 1) {
+        document.querySelector('#prev').disabled = false
+    }
+
+    if (global.search.page === global.search.totalPages) {
+        document.querySelector('#next').disabled = true
+    }
+
+    document.querySelector('#pagination').appendChild(container)
+    document.querySelector('#prev').addEventListener('click', async () => {
+        global.search.page--
+        const { results } = await searchAPI()
+        displaySearch(results)
+    })
+
+    document.querySelector('#next').addEventListener('click', async () => {
+        global.search.page++
+        const { results } = await searchAPI()
+        displaySearch(results)
+    })
+
+    
 }
 
 async function searchAPI() {
     showSpinner()
     const apiKey = '5aeccd4b580201f53436d491200ea899'
     const apiURL = `https://api.themoviedb.org/3/`
-    const response = await fetch(`${apiURL}search/${global.search.type}?api_key=${apiKey}&language=en-US&query=${global.search.term}`)
+    const response = await fetch(`${apiURL}search/${global.search.type}?api_key=${apiKey}&language=en-US&query=${global.search.term}&page=${global.search.page}`)
     const data = await response.json()
     hideSpinner()
+    console.log(data)
     return data
 }
 

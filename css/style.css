@@ -212,7 +212,7 @@ section h2 {
 }
 
 .swiper-slide:hover {
-  transform: scale(105%);
+  transform: scale(103%);
   transition: 0.5s ease;
 }
 

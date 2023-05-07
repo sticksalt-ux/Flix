@@ -346,3 +346,18 @@ section h2 {
 .alert-error {
   background: red;
 }
+
+.services {
+  text-align: left;
+  color: var(--color-secondary);
+  display: flex;
+  
+  gap: 1rem;
+}
+
+.services img {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+}

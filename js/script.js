@@ -9,6 +9,19 @@ const global = {
     }
 }
 
+async function fetchStreamingServices(type, id) {
+    const apiKey = 'oqBRxPlfi4qPeneMwtsXfJW6blLUFZBa7vFAVWI0'
+    const res = await fetch(`https://api.watchmode.com/v1/title/${type}-${id}/sources/?apiKey=${apiKey}`)
+
+    const data = await res.json()
+
+    const services = data.filter(service => service.type === 'sub')
+
+    const finalList = services.map(service => service.name)
+
+    return finalList
+}
+
 // fetch data from tmdb api
 
 async function fetchData(endpoint) {
@@ -19,6 +32,17 @@ async function fetchData(endpoint) {
     const data = await response.json()
     hideSpinner()
     return data
+}
+
+function createServiceNodes(services) {
+    const nodes = services.map(service => {
+        if (service.includes(' ')) {
+            return `<img src='./icons/${service.split(' ')[0]}.png'>`
+        } else {
+            return `<img src='./icons/${service}.png'>`
+        }
+    })
+    return nodes.join(' ')
 }
 
 async function search() {
@@ -281,6 +305,8 @@ async function getMovieDetails() {
 
     console.log(movie)
 
+    const services = await fetchStreamingServices('movie', id)
+
     card.innerHTML = 
     `
         <div class="details-top">
@@ -300,6 +326,7 @@ async function getMovieDetails() {
         }
         </div>
         <div>
+        
         <h2>${movie.title}</h2>
         <p>
             <i class="fas fa-star text-primary"></i>
@@ -309,6 +336,14 @@ async function getMovieDetails() {
         <p>
             ${movie.overview}
         </p>
+        <h2 class="services">Stream on: 
+        ${
+            services ?
+            `${createServiceNodes(services)}`
+            :
+            '<span>not available for streaming</span>'
+        }
+        </h2>
         <h5>Genres</h5>
         <ul class="list-group">
             ${
